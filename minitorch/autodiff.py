@@ -22,7 +22,11 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
     Returns:
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    # TODO: Implement for Task 1.1.
+    vals_eps = list(vals)
+    vals_eps[arg] += epsilon
+    delta = f(*vals_eps) - f(*vals)
+    return delta / epsilon
 
 
 variable_count = 1
@@ -50,6 +54,9 @@ class Variable(Protocol):
         pass
 
 
+    
+
+
 def topological_sort(variable: Variable) -> Iterable[Variable]:
     """
     Computes the topological order of the computation graph.
@@ -60,7 +67,24 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     Returns:
         Non-constant Variables in topological order starting from the right.
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    # TODO: Implement for Task 1.4.
+    res = []
+    vis = set()
+
+    def dfs(v: Variable):
+        if v.unique_id in vis:
+            return
+        if v.is_constant():
+            return
+        vis.add(v.unique_id)
+        for parent in v.parents:
+            dfs(parent)
+        res.insert(0, v)
+
+    dfs(variable)
+
+    return res
+
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
@@ -74,7 +98,21 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    # TODO: Implement for Task 1.4.
+    order = topological_sort(variable)
+    mas = dict()
+    mas[variable.unique_id] = deriv
+    for v in order:
+        if v.is_leaf():
+            v.accumulate_derivative(mas[v.unique_id])
+        else:
+            for (u, d) in v.chain_rule(mas[v.unique_id]):
+                if u.is_constant():
+                    continue
+                if u.unique_id in mas:
+                    mas[u.unique_id] += d
+                else:
+                    mas[u.unique_id] = d
 
 
 @dataclass
